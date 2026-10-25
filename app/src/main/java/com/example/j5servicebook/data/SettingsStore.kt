@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.map
 data class Settings(
     val leadDays: Int = DEFAULT_LEAD_DAYS,
     val wallpaperColors: Boolean = false,
+    val ownerName: String = "",
 ) {
     companion object {
         const val DEFAULT_LEAD_DAYS = 7
@@ -29,6 +31,7 @@ class SettingsStore(context: Context) {
         Settings(
             leadDays = it[LEAD_DAYS] ?: Settings.DEFAULT_LEAD_DAYS,
             wallpaperColors = it[WALLPAPER_COLORS] ?: false,
+            ownerName = it[OWNER_NAME].orEmpty(),
         )
     }
 
@@ -38,6 +41,10 @@ class SettingsStore(context: Context) {
 
     suspend fun setWallpaperColors(on: Boolean) {
         store.edit { it[WALLPAPER_COLORS] = on }
+    }
+
+    suspend fun setOwnerName(name: String) {
+        store.edit { it[OWNER_NAME] = name.trim() }
     }
 
     suspend fun sentKeys(): Set<String> = store.data.first()[SENT_KEYS].orEmpty()
@@ -53,6 +60,7 @@ class SettingsStore(context: Context) {
         val LEAD_DAYS = intPreferencesKey("lead_days")
         val WALLPAPER_COLORS = booleanPreferencesKey("wallpaper_colors")
         val SENT_KEYS = stringSetPreferencesKey("sent_notice_keys")
+        val OWNER_NAME = stringPreferencesKey("owner_name")
         const val MAX_SENT_KEYS = 300
     }
 }

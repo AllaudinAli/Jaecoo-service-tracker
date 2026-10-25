@@ -40,6 +40,15 @@ keyPassword=...
 
 **Back up `release.jks` and `keystore.properties` somewhere safe** (a password manager or a private cloud folder). If you lose them you can still build the app, but the phone won't accept it as an update. You would have to uninstall, which deletes the app's data unless you export a backup first.
 
+## Preview on a PC
+
+`.\tools\preview.ps1` builds the app and opens it in the Android emulator (`-Fresh` wipes data to show first-launch setup).
+
+## Credits
+
+- Car photo: "2025 Jaecoo 5 EV Max (Thailand)" by iMoD Official, [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), via Wikimedia Commons. Background removed and number plate covered. Shown in the app under Settings → About.
+- Font: [Geist](https://github.com/vercel/geist-font), SIL Open Font License 1.1 (see `licenses/Geist-OFL.txt`).
+
 ## Code layout
 
 | Path | What |

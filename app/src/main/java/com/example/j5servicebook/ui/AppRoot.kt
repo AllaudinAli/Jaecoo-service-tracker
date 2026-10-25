@@ -2,33 +2,38 @@ package com.example.j5servicebook.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.VerifiedUser
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -43,7 +48,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,24 +60,26 @@ import com.example.j5servicebook.domain.ItemId
 import com.example.j5servicebook.reminders.Notifier
 import com.example.j5servicebook.ui.screens.HistoryScreen
 import com.example.j5servicebook.ui.screens.HomeScreen
+import com.example.j5servicebook.ui.screens.ItemDetailScreen
 import com.example.j5servicebook.ui.screens.ScheduleScreen
 import com.example.j5servicebook.ui.screens.SettingsScreen
 import com.example.j5servicebook.ui.screens.SetupScreen
 import com.example.j5servicebook.ui.screens.SpecsScreen
 import com.example.j5servicebook.ui.screens.WarrantyScreen
-import com.example.j5servicebook.ui.sheets.ItemHistorySheet
 import com.example.j5servicebook.ui.sheets.LogServiceSheet
 import com.example.j5servicebook.ui.sheets.OdometerSheet
+import com.example.j5servicebook.ui.theme.Accent
+import com.example.j5servicebook.ui.theme.OnAccent
 import kotlinx.coroutines.launch
 
-private enum class Tab(val label: String, val icon: ImageVector, val selectedIcon: ImageVector) {
-    HOME("Home", Icons.Outlined.Home, Icons.Filled.Home),
-    SCHEDULE("Schedule", Icons.Outlined.CalendarMonth, Icons.Filled.CalendarMonth),
-    HISTORY("History", Icons.Outlined.History, Icons.Filled.History),
-    WARRANTY("Warranty", Icons.Outlined.VerifiedUser, Icons.Filled.VerifiedUser),
+enum class Tab(val label: String, val icon: ImageVector) {
+    HOME("Home", Icons.Rounded.Home),
+    SCHEDULE("Schedule", Icons.Rounded.CalendarMonth),
+    HISTORY("History", Icons.Rounded.History),
+    WARRANTY("Warranty", Icons.Rounded.Shield),
 }
 
-private enum class Overlay { SPECS, SETTINGS }
+private enum class Overlay { SPECS, SETTINGS, ITEM }
 
 /** Id sentinel for "log a new service" in the log sheet state. */
 private const val NEW_RECORD = 0L
@@ -81,16 +92,18 @@ fun AppRoot(viewModel: MainViewModel, pendingAction: String?, onActionHandled: (
         Box(Modifier.fillMaxSize()) {
             when (val s = state) {
                 UiState.Loading -> Unit
-                UiState.NeedsSetup -> SetupScreen(onDone = { date, km, seed -> viewModel.completeSetup(date, km, seed) })
+                UiState.NeedsSetup -> SetupScreen(onDone = viewModel::completeSetup)
                 is UiState.Ready -> MainScaffold(s.dashboard, viewModel, pendingAction, onActionHandled)
             }
-            // Solid strip behind the status bar so scrolled content doesn't run under the clock.
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .windowInsetsTopHeight(WindowInsets.statusBars)
-                    .background(MaterialTheme.colorScheme.background),
-            )
+            if (state is UiState.Ready) {
+                // Solid strip behind the status bar so scrolled content doesn't run under the clock.
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .windowInsetsTopHeight(WindowInsets.statusBars)
+                        .background(MaterialTheme.colorScheme.background),
+                )
+            }
         }
     }
 }
@@ -105,12 +118,18 @@ private fun MainScaffold(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     var overlay by rememberSaveable { mutableStateOf<Overlay?>(null) }
+    var detailItem by rememberSaveable { mutableStateOf<ItemId?>(null) }
     var logSheetId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var logPreset by rememberSaveable { mutableStateOf<ItemId?>(null) }
     var odometerSheet by rememberSaveable { mutableStateOf(false) }
-    var historyItem by rememberSaveable { mutableStateOf<ItemId?>(null) }
 
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    fun openLog(preset: ItemId? = null) {
+        logPreset = preset
+        logSheetId = NEW_RECORD
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.messages.collect { snackbar.showSnackbar(it, duration = SnackbarDuration.Short) }
@@ -119,7 +138,7 @@ private fun MainScaffold(
         if (pendingAction == Notifier.ACTION_LOG_SERVICE) {
             overlay = null
             tab = Tab.HOME
-            logSheetId = NEW_RECORD
+            openLog()
         }
         if (pendingAction != null) onActionHandled()
     }
@@ -129,35 +148,26 @@ private fun MainScaffold(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = { SnackbarHost(snackbar) },
+        snackbarHost = {
+            SnackbarHost(snackbar) {
+                Snackbar(
+                    it,
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = Color.White,
+                    actionColor = Accent,
+                )
+            }
+        },
         bottomBar = {
-            if (overlay == null) {
-                Column {
-                    HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                    NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = 0.dp) {
-                        Tab.entries.forEach { t ->
-                            NavigationBarItem(
-                                selected = tab == t,
-                                onClick = { tab = t },
-                                icon = { Icon(if (tab == t) t.selectedIcon else t.icon, contentDescription = null) },
-                                label = { Text(t.label) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    selectedIconColor = MaterialTheme.colorScheme.onSurface,
-                                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                ),
-                            )
-                        }
-                    }
-                }
+            AnimatedVisibility(overlay == null, enter = fadeIn(), exit = fadeOut()) {
+                FloatingNavBar(selected = tab, onSelect = { tab = it })
             }
         },
     ) { insets ->
         AnimatedContent(
             targetState = overlay to tab,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(160)) },
             label = "screen",
         ) { (o, t) ->
             when (o) {
@@ -168,23 +178,38 @@ private fun MainScaffold(
                     onBack = { overlay = null },
                     onLeadDays = viewModel::setLeadDays,
                     onWallpaperColors = viewModel::setWallpaperColors,
+                    onOwnerName = viewModel::setOwnerName,
                     onExport = viewModel::exportTo,
                     onImport = viewModel::importFrom,
                     onRunReminderCheck = viewModel::runReminderCheck,
                 )
+                Overlay.ITEM -> detailItem?.let { item ->
+                    ItemDetailScreen(
+                        d = d,
+                        item = item,
+                        insets = insets,
+                        onBack = { overlay = null },
+                        onLog = { openLog(item) },
+                    )
+                }
                 null -> when (t) {
                     Tab.HOME -> HomeScreen(
                         d = d,
+                        ownerName = settings.ownerName,
                         insets = insets,
                         onUpdateOdometer = { odometerSheet = true },
-                        onLogService = { logSheetId = NEW_RECORD },
+                        onLogService = { openLog() },
                         onOpenSettings = { overlay = Overlay.SETTINGS },
+                        onOpenSchedule = { tab = Tab.SCHEDULE },
                     )
-                    Tab.SCHEDULE -> ScheduleScreen(d, insets, onItemClick = { historyItem = it })
+                    Tab.SCHEDULE -> ScheduleScreen(d, insets, onItemClick = {
+                        detailItem = it
+                        overlay = Overlay.ITEM
+                    })
                     Tab.HISTORY -> HistoryScreen(
                         d = d,
                         insets = insets,
-                        onAdd = { logSheetId = NEW_RECORD },
+                        onAdd = { openLog() },
                         onEdit = { logSheetId = it.id },
                     )
                     Tab.WARRANTY -> WarrantyScreen(d, insets, onOpenSpecs = { overlay = Overlay.SPECS })
@@ -209,6 +234,7 @@ private fun MainScaffold(
         LogServiceSheet(
             d = d,
             existing = existing,
+            preset = logPreset,
             onDismiss = { logSheetId = null },
             onSave = {
                 viewModel.saveRecord(it, d.latest.km)
@@ -226,8 +252,54 @@ private fun MainScaffold(
             },
         )
     }
+}
 
-    historyItem?.let { item ->
-        ItemHistorySheet(d = d, item = item, onDismiss = { historyItem = null })
+/** Dark floating pill bar; the selected tab expands into a yellow pill with its label. */
+@Composable
+private fun FloatingNavBar(selected: Tab, onSelect: (Tab) -> Unit) {
+    // Content scrolls behind the bar, so fade it into the background around the floating pill.
+    val bg = MaterialTheme.colorScheme.background
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(Brush.verticalGradient(0f to bg.copy(alpha = 0f), 0.4f to bg))
+            .navigationBarsPadding()
+            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp),
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(68.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF1C1C1C))
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Tab.entries.forEach { t ->
+                val isSelected = t == selected
+                Row(
+                    Modifier
+                        .height(52.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) Accent else Color.Transparent)
+                        .clickable { onSelect(t) }
+                        .animateContentSize()
+                        .padding(horizontal = if (isSelected) 18.dp else 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        t.icon,
+                        contentDescription = t.label,
+                        tint = if (isSelected) OnAccent else Color(0xFF8E8E8E),
+                        modifier = Modifier.size(24.dp),
+                    )
+                    if (isSelected) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(t.label, style = MaterialTheme.typography.labelLarge, color = OnAccent)
+                    }
+                }
+            }
+        }
     }
 }

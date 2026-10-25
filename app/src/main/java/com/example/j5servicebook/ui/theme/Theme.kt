@@ -17,117 +17,137 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.j5servicebook.R
 
-// Monochrome palette: a soft grey canvas with white panels in light mode,
-// true black with charcoal panels in dark mode (AMOLED friendly).
-private val Ink = Color(0xFF141416)
-private val Paper = Color(0xFFF1F1F3)
+// One accent (yellow) on a white canvas with soft grey cards, plus dark "inverse"
+// panels for the most important block on each screen.
+val Accent = Color(0xFFFFCC00)
+val OnAccent = Color(0xFF111111)
 
 private val LightColors = lightColorScheme(
-    primary = Ink,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFE6E6EA),
-    onPrimaryContainer = Ink,
-    secondary = Color(0xFF5E5E66),
+    primary = Accent,
+    onPrimary = OnAccent,
+    primaryContainer = Color(0xFFFFF4CC),
+    onPrimaryContainer = OnAccent,
+    secondary = Color(0xFF111111),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE4E4E8),
-    onSecondaryContainer = Ink,
-    tertiary = Color(0xFF5E5E66),
-    background = Color(0xFFF3F3F5),
-    onBackground = Ink,
-    surface = Color(0xFFF3F3F5),
-    onSurface = Ink,
-    surfaceVariant = Color(0xFFE9E9EC),
-    onSurfaceVariant = Color(0xFF6B6B73),
+    secondaryContainer = Color(0xFFF2F2F2),
+    onSecondaryContainer = Color(0xFF111111),
+    tertiary = Color(0xFF111111),
+    background = Color.White,
+    onBackground = Color(0xFF111111),
+    surface = Color.White,
+    onSurface = Color(0xFF111111),
+    surfaceVariant = Color(0xFFF4F4F4),
+    onSurfaceVariant = Color(0xFF8A8A8A),
     surfaceContainerLowest = Color.White,
     surfaceContainerLow = Color.White,
-    surfaceContainer = Color.White,
-    surfaceContainerHigh = Color(0xFFF8F8FA),
-    surfaceContainerHighest = Color(0xFFECECEF),
-    surfaceBright = Color.White,
-    surfaceDim = Color(0xFFE4E4E8),
-    outline = Color(0xFFC6C6CC),
-    outlineVariant = Color(0xFFE6E6EA),
-    inverseSurface = Ink,
-    inverseOnSurface = Paper,
-    inversePrimary = Paper,
-    error = Color(0xFFC4302B),
+    surfaceContainer = Color(0xFFF5F5F5),
+    surfaceContainerHigh = Color(0xFFEFEFEF),
+    surfaceContainerHighest = Color(0xFFE9E9E9),
+    outline = Color(0xFFD9D9D9),
+    outlineVariant = Color(0xFFEAEAEA),
+    inverseSurface = Color(0xFF1E1E1E),
+    inverseOnSurface = Color.White,
+    inversePrimary = Accent,
+    error = Color(0xFFE5484D),
     onError = Color.White,
     scrim = Color.Black,
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Paper,
-    onPrimary = Ink,
-    primaryContainer = Color(0xFF2A2A2E),
-    onPrimaryContainer = Paper,
-    secondary = Color(0xFFA0A0A8),
-    onSecondary = Ink,
-    secondaryContainer = Color(0xFF2A2A2E),
-    onSecondaryContainer = Paper,
-    tertiary = Color(0xFFA0A0A8),
-    background = Color.Black,
-    onBackground = Paper,
-    surface = Color.Black,
-    onSurface = Paper,
-    surfaceVariant = Color(0xFF1E1E21),
-    onSurfaceVariant = Color(0xFF9C9CA4),
-    surfaceContainerLowest = Color.Black,
-    surfaceContainerLow = Color(0xFF161618),
-    surfaceContainer = Color(0xFF161618),
-    surfaceContainerHigh = Color(0xFF1E1E21),
-    surfaceContainerHighest = Color(0xFF28282C),
-    surfaceBright = Color(0xFF2C2C30),
-    surfaceDim = Color.Black,
-    outline = Color(0xFF45454B),
-    outlineVariant = Color(0xFF26262A),
-    inverseSurface = Paper,
-    inverseOnSurface = Ink,
-    inversePrimary = Ink,
-    error = Color(0xFFFF6B61),
-    onError = Ink,
+    primary = Accent,
+    onPrimary = OnAccent,
+    primaryContainer = Color(0xFF3A3000),
+    onPrimaryContainer = Accent,
+    secondary = Color(0xFFF2F2F2),
+    onSecondary = Color(0xFF111111),
+    secondaryContainer = Color(0xFF222222),
+    onSecondaryContainer = Color(0xFFF2F2F2),
+    tertiary = Color(0xFFF2F2F2),
+    background = Color(0xFF0A0A0A),
+    onBackground = Color(0xFFF2F2F2),
+    surface = Color(0xFF0A0A0A),
+    onSurface = Color(0xFFF2F2F2),
+    surfaceVariant = Color(0xFF171717),
+    onSurfaceVariant = Color(0xFF8C8C8C),
+    surfaceContainerLowest = Color(0xFF0A0A0A),
+    surfaceContainerLow = Color(0xFF141414),
+    surfaceContainer = Color(0xFF161616),
+    surfaceContainerHigh = Color(0xFF1E1E1E),
+    surfaceContainerHighest = Color(0xFF262626),
+    outline = Color(0xFF3A3A3A),
+    outlineVariant = Color(0xFF242424),
+    inverseSurface = Color(0xFF1C1C1C),
+    inverseOnSurface = Color.White,
+    inversePrimary = Accent,
+    error = Color(0xFFFF6B6B),
+    onError = Color(0xFF111111),
     scrim = Color.Black,
 )
 
-/** Muted status colours, the only colour in the default theme. */
+/** Status colours. Brand yellow is kept for actions; "due soon" uses orange so the two never blur. */
 @Immutable
 data class StatusColors(val ok: Color, val soon: Color, val overdue: Color)
 
-private val LightStatus = StatusColors(ok = Color(0xFF1F8A47), soon = Color(0xFFB06A00), overdue = Color(0xFFC4302B))
-private val DarkStatus = StatusColors(ok = Color(0xFF5CCB80), soon = Color(0xFFF0B44C), overdue = Color(0xFFFF6B61))
+private val LightStatus = StatusColors(ok = Color(0xFF16A34A), soon = Color(0xFFEA7A00), overdue = Color(0xFFE5484D))
+private val DarkStatus = StatusColors(ok = Color(0xFF4ADE80), soon = Color(0xFFFFA23E), overdue = Color(0xFFFF6B6B))
 
 val LocalStatusColors = staticCompositionLocalOf { LightStatus }
 
-private val Tabular = "tnum"
+@OptIn(ExperimentalTextApi::class)
+private fun geist(weight: Int) = Font(
+    R.font.geist,
+    weight = FontWeight(weight),
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
+)
 
-private val AppTypography = Typography().run {
-    copy(
-        displaySmall = displaySmall.copy(fontSize = 34.sp, lineHeight = 40.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.5).sp, fontFeatureSettings = Tabular),
-        headlineLarge = headlineLarge.copy(fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.4).sp),
-        headlineSmall = headlineSmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = (-0.2).sp, fontFeatureSettings = Tabular),
-        titleLarge = titleLarge.copy(fontSize = 20.sp, fontWeight = FontWeight.SemiBold),
-        titleMedium = titleMedium.copy(fontWeight = FontWeight.Medium, fontFeatureSettings = Tabular),
-        bodyLarge = bodyLarge.copy(fontFeatureSettings = Tabular),
-        bodyMedium = bodyMedium.copy(fontFeatureSettings = Tabular),
-        bodySmall = bodySmall.copy(fontSize = 13.sp, lineHeight = 18.sp, fontFeatureSettings = Tabular),
-        labelLarge = labelLarge.copy(fontWeight = FontWeight.Medium),
-        labelMedium = labelMedium.copy(fontWeight = FontWeight.Medium, fontFeatureSettings = Tabular),
-    )
-}
+/** Geist, bundled so the app stays offline. Swap the font file to change the whole app. */
+val Geist = FontFamily(geist(300), geist(400), geist(500), geist(600))
 
-/** Small caps-style section label. */
-val SectionLabelStyle = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.2.sp)
+private const val Tabular = "tnum"
+
+private fun style(size: Int, line: Int, weight: Int, tracking: Double = 0.0, tabular: Boolean = false) = TextStyle(
+    fontFamily = Geist,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+    fontWeight = FontWeight(weight),
+    letterSpacing = tracking.sp,
+    fontFeatureSettings = if (tabular) Tabular else null,
+)
+
+private val AppTypography = Typography(
+    displayLarge = style(44, 50, 500, -1.2, tabular = true),
+    displayMedium = style(38, 44, 500, -1.0, tabular = true),
+    displaySmall = style(32, 38, 500, -0.8, tabular = true),
+    headlineLarge = style(32, 38, 500, -0.8),
+    headlineMedium = style(26, 32, 500, -0.5),
+    headlineSmall = style(22, 28, 500, -0.3, tabular = true),
+    titleLarge = style(20, 26, 500, -0.2),
+    titleMedium = style(16, 22, 500, -0.1, tabular = true),
+    titleSmall = style(14, 20, 500),
+    bodyLarge = style(16, 24, 400, tabular = true),
+    bodyMedium = style(14, 20, 400, tabular = true),
+    bodySmall = style(13, 18, 400, tabular = true),
+    labelLarge = style(15, 20, 500),
+    labelMedium = style(13, 16, 500, tabular = true),
+    labelSmall = style(11, 14, 500, 0.2),
+)
 
 private val AppShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(28.dp),
+    extraSmall = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(26.dp),
+    extraLarge = RoundedCornerShape(32.dp),
 )
 
 @Composable

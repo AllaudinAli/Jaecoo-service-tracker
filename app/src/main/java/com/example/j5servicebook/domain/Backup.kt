@@ -12,6 +12,7 @@ data class Backup(
     val readings: List<Reading>,
     val records: List<ServiceRecord>,
     val leadDays: Int? = null,
+    val ownerName: String? = null,
 ) {
     companion object {
         const val FORMAT = "j5-service-book"

@@ -110,7 +110,8 @@ class MainViewModel(
         today.value = LocalDate.now()
     }
 
-    fun completeSetup(purchaseDate: LocalDate, km: Int, seedInspection: Boolean) = viewModelScope.launch {
+    fun completeSetup(name: String, purchaseDate: LocalDate, km: Int, seedInspection: Boolean) = viewModelScope.launch {
+        settingsStore.setOwnerName(name)
         repository.setup(CarRepository.DEFAULT_NAME, purchaseDate, km, LocalDate.now(), seedInspection)
         ReminderScheduler.schedule(app)
     }
@@ -134,6 +135,8 @@ class MainViewModel(
 
     fun setWallpaperColors(on: Boolean) = viewModelScope.launch { settingsStore.setWallpaperColors(on) }
 
+    fun setOwnerName(name: String) = viewModelScope.launch { settingsStore.setOwnerName(name) }
+
     fun runReminderCheck() {
         ReminderScheduler.runNow(app)
         viewModelScope.launch { _messages.send("Reminder check started") }
@@ -149,6 +152,7 @@ class MainViewModel(
                     readings = data.readings,
                     records = data.records,
                     leadDays = settings.value.leadDays,
+                    ownerName = settings.value.ownerName.ifBlank { null },
                 ),
             )
             withContext(Dispatchers.IO) {
@@ -166,6 +170,7 @@ class MainViewModel(
             val backup = BackupCodec.decode(text)
             repository.restore(backup)
             backup.leadDays?.let { settingsStore.setLeadDays(it) }
+            backup.ownerName?.let { settingsStore.setOwnerName(it) }
             backup
         }
         _messages.send(
