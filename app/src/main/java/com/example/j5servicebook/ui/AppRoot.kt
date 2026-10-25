@@ -33,6 +33,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -75,19 +76,22 @@ private const val NEW_RECORD = 0L
 @Composable
 fun AppRoot(viewModel: MainViewModel, pendingAction: String?, onActionHandled: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        when (val s = state) {
-            UiState.Loading -> Unit
-            UiState.NeedsSetup -> SetupScreen(onDone = { date, km, seed -> viewModel.completeSetup(date, km, seed) })
-            is UiState.Ready -> MainScaffold(s.dashboard, viewModel, pendingAction, onActionHandled)
+    // Surface (not a plain background) so text outside the Scaffold, like Setup, gets onBackground.
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Box(Modifier.fillMaxSize()) {
+            when (val s = state) {
+                UiState.Loading -> Unit
+                UiState.NeedsSetup -> SetupScreen(onDone = { date, km, seed -> viewModel.completeSetup(date, km, seed) })
+                is UiState.Ready -> MainScaffold(s.dashboard, viewModel, pendingAction, onActionHandled)
+            }
+            // Solid strip behind the status bar so scrolled content doesn't run under the clock.
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .windowInsetsTopHeight(WindowInsets.statusBars)
+                    .background(MaterialTheme.colorScheme.background),
+            )
         }
-        // Solid strip behind the status bar so scrolled content doesn't run under the clock.
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .windowInsetsTopHeight(WindowInsets.statusBars)
-                .background(MaterialTheme.colorScheme.background),
-        )
     }
 }
 
