@@ -41,7 +41,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.example.j5servicebook.BuildConfig
 import com.example.j5servicebook.data.Settings
-import com.example.j5servicebook.ui.components.CAR_PHOTO_CREDIT
 import com.example.j5servicebook.ui.components.Caption
 import com.example.j5servicebook.ui.components.CardPadding
 import com.example.j5servicebook.ui.components.CardRow
@@ -194,8 +193,6 @@ fun SettingsScreen(
         item { SectionHeader("About") }
         item {
             Caption("J5 Service Book ${BuildConfig.VERSION_NAME}", Modifier.padding(start = 4.dp))
-            Spacer(Modifier.height(8.dp))
-            Caption(CAR_PHOTO_CREDIT, Modifier.padding(start = 4.dp))
             Spacer(Modifier.height(8.dp))
             Caption("Font: Geist, SIL Open Font License 1.1.", Modifier.padding(start = 4.dp))
         }

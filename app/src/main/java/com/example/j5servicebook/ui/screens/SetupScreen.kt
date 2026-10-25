@@ -127,8 +127,8 @@ private fun Welcome(onStart: () -> Unit) {
             BrandMark()
             Spacer(Modifier.weight(1f))
             CarImage(
-                Modifier.requiredWidth(460.dp).offset(x = 30.dp),
-                height = 230.dp,
+                Modifier.requiredWidth(420.dp).offset(x = 28.dp),
+                height = 205.dp,
             )
             Spacer(Modifier.weight(0.6f))
             Text(

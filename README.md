@@ -46,7 +46,7 @@ keyPassword=...
 
 ## Credits
 
-- Car photo: "2025 Jaecoo 5 EV Max (Thailand)" by iMoD Official, [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), via Wikimedia Commons. Background removed and number plate covered. Shown in the app under Settings → About.
+- Car image: Jaecoo J5 SHS, supplied by the owner (`art/jaecoo_j5_shs_source.jpg`). The app uses a cut-out made from it (`res/drawable-nodpi/jaecoo_j5.webp`).
 - Font: [Geist](https://github.com/vercel/geist-font), SIL Open Font License 1.1 (see `licenses/Geist-OFL.txt`).
 
 ## Code layout

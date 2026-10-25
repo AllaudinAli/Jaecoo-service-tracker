@@ -31,9 +31,14 @@ if ($out -match "INSTALL_FAILED_UPDATE_INCOMPATIBLE|signatures do not match") {
     & $adb uninstall $app | Out-Null
     & $adb install $apk | Out-Null
 }
-# Stop, optionally wipe, then start and wait for the first frame. Doing these back to back
-# without waiting can leave Android holding a dead, blank activity.
+# Stop, optionally wipe, then start in a clean task. System UI can relaunch the app right after a
+# force-stop, and a data wipe then kills that launch and leaves a dead, blank task behind, so wait
+# for the wipe to settle and retry if the process didn't come up.
 & $adb shell am force-stop $app | Out-Null
-if ($Fresh) { & $adb shell pm clear $app | Out-Null; Start-Sleep 1 }
-cmd /c "`"$adb`" shell am start -W -n $app/.MainActivity 2>&1" | Out-Null
+if ($Fresh) { & $adb shell pm clear $app | Out-Null; Start-Sleep 2 }
+foreach ($attempt in 1..3) {
+    cmd /c "`"$adb`" shell am start -S -W -f 0x10008000 -n $app/.MainActivity 2>&1" | Out-Null
+    Start-Sleep 2
+    if (& $adb shell pidof $app) { break }
+}
 Write-Host "Running in the emulator window."

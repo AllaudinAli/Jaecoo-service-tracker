@@ -41,11 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.example.j5servicebook.R
 import com.example.j5servicebook.domain.ItemId
 
-/** Photo credit for the bundled car image (CC BY 3.0 requires attribution). */
-const val CAR_PHOTO_CREDIT =
-    "Car photo: \"2025 Jaecoo 5 EV Max (Thailand)\" by iMoD Official, CC BY 3.0, via Wikimedia Commons. " +
-        "Background removed and number plate covered."
-
 /**
  * The Jaecoo J5 cut-out with a soft floor shadow, so it sits on whatever is behind it.
  * The photo is roughly 2:1; [height] sets its size.
