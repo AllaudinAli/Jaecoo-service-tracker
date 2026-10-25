@@ -1,5 +1,4 @@
 <resources>
-    <color name="canvas">#FFF3F3F5</color>
-    <color name="icon_background">#FF141416</color>
-    <color name="icon_foreground">#FFF3F3F5</color>
+    <color name="canvas">#FFFFFFFF</color>
+    <color name="icon_background">#FF111111</color>
 </resources>

@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,10 +54,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import com.example.j5servicebook.R
 import com.example.j5servicebook.data.CarRepository
 import com.example.j5servicebook.domain.Fmt
 import com.example.j5servicebook.ui.components.CarImage
@@ -154,16 +157,18 @@ private fun Welcome(onStart: () -> Unit) {
     }
 }
 
+/** "JAECOO | Service Book", echoing the OMODA | JAECOO lockup with a yellow divider. */
 @Composable
 private fun BrandMark() {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier.size(34.dp).clip(RoundedCornerShape(11.dp)).background(Accent),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("J5", style = MaterialTheme.typography.labelLarge, color = OnAccent)
-        }
-        Spacer(Modifier.width(10.dp))
+        Image(
+            painter = painterResource(R.drawable.jaecoo_wordmark),
+            contentDescription = "Jaecoo",
+            modifier = Modifier.height(15.dp),
+        )
+        Spacer(Modifier.width(14.dp))
+        Box(Modifier.size(width = 2.dp, height = 18.dp).clip(RoundedCornerShape(1.dp)).background(Accent))
+        Spacer(Modifier.width(14.dp))
         Text("Service Book", style = MaterialTheme.typography.titleMedium, color = Color.White)
     }
 }
